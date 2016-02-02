@@ -1,5 +1,5 @@
 FROM phusion/baseimage:0.9.16
-MAINTAINER Harsh Vakharia <harshjv@gmail.com>
+MAINTAINER Bunnyfu <bunnyfu@gmail.com>
 
 # Default baseimage settings
 ENV HOME /root
@@ -8,11 +8,31 @@ CMD ["/sbin/my_init"]
 ENV DEBIAN_FRONTEND noninteractive
 
 # Update software list, install php-nginx & clear cache
+RUN echo "deb http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+RUN echo "deb-src http://packages.dotdeb.org jessie all" >> /etc/apt/sources.list
+RUN apt-get install apt-transport-https
+RUN wget https://www.dotdeb.org/dotdeb.gpg
+RUN apt-key add dotdeb.gpg
+
 RUN apt-get update && \
     apt-get install -y --force-yes nginx \
-    php5-fpm php5-cli php5-mysql php5-mcrypt \
-    php5-curl php5-gd php5-intl && \
-    apt-get clean && \
+    git php7.0 php7.0-fpm php7.0-cli php7.0-mysql php7.0-opcache
+
+RUN apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev
+RUN cd ~/
+RUN git clone https://github.com/php-memcached-dev/php-memcached.git
+RUN cd php-memcached
+RUN git checkout php7
+RUN phpize
+RUN ./configure --disable-memcached-sasl
+RUN make
+RUN make install
+RUN touch /etc/php/mods-available/memcached.ini
+RUN echo "extension=memcached.so" >> /etc/php/mods-available/memcached.ini
+RUN ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/fpm/conf.d/20-memcached.ini
+RUN ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/cli/conf.d/20-memcached.ini
+
+RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* \
            /tmp/* \
            /var/tmp/*
@@ -23,12 +43,11 @@ RUN sed -i "s/sendfile on/sendfile off/"                                /etc/ngi
 RUN mkdir -p                                                            /var/www
 
 # Configure PHP
-RUN sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/"                  /etc/php5/fpm/php.ini
-RUN sed -i "s/;date.timezone =.*/date.timezone = Asia\/Kolkata/"        /etc/php5/fpm/php.ini
-RUN sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g"                 /etc/php5/fpm/php-fpm.conf
-RUN sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/"                  /etc/php5/cli/php.ini
-RUN sed -i "s/;date.timezone =.*/date.timezone = Asia\/Kolkata/"        /etc/php5/cli/php.ini
-RUN php5enmod mcrypt
+RUN sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/"                  /etc/php/7.0/fpm/php.ini
+RUN sed -i "s/;date.timezone =.*/date.timezone = Asia\/Kolkata/"        /etc/php/7.0/fpm/php.ini
+RUN sed -i -e "s/;daemonize\s*=\s*yes/daemonize = no/g"                 /etc/php/7.0/fpm/php-fpm.conf
+RUN sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/"                  /etc/php/7.0/cli/php.ini
+RUN sed -i "s/;date.timezone =.*/date.timezone = Asia\/Kolkata/"        /etc/php/7.0/cli/php.ini
 
 # Add nginx service
 RUN mkdir                                                               /etc/service/nginx
