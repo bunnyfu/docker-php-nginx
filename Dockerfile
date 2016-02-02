@@ -14,8 +14,7 @@ RUN apt-get update
 RUN apt-get install -y wget
 RUN wget https://www.dotdeb.org/dotdeb.gpg
 RUN apt-key add dotdeb.gpg
-
-RUN apt-get install -y --force-yes nginx
+RUN apt-get install -y nginx
 RUN apt-get install php7.0 
 RUN apt-get install php7.0-fpm 
 RUN apt-get install php7.0-cli 
