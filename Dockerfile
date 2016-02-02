@@ -15,9 +15,12 @@ RUN apt-get install -y wget
 RUN wget https://www.dotdeb.org/dotdeb.gpg
 RUN apt-key add dotdeb.gpg
 
-RUN apt-get install -y --force-yes nginx \
-    git php7.0 php7.0-fpm php7.0-cli php7.0-mysql php7.0-opcache
-
+RUN apt-get install -y --force-yes nginx
+RUN apt-get install php7.0 
+RUN apt-get install php7.0-fpm 
+RUN apt-get install php7.0-cli 
+RUN apt-get install php7.0-mysql 
+RUN apt-get install php7.0-opcache
 RUN apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev
 RUN cd ~/
 RUN git clone https://github.com/php-memcached-dev/php-memcached.git
